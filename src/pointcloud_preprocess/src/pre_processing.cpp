@@ -14,39 +14,42 @@ using namespace std;
 ros::Publisher pub;
  
 
-void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
+void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
+
+  //原始的点云文件
+  pcl::io::savePCDFile("./test_pointcloud_init.pcd", *cloud_msg);
+  cout<<"pointcloud_init height = "<<cloud_msg->height<<endl;
+  cout<<"pointcloud_init width = "<<cloud_msg->width<<endl;
+
+  /*以下工作为滤波部分*/
   // Container for original & filtered data
   pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
   pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-  pcl::PCLPointCloud2 cloud_filtered;
- //相机获得原始点云文件
-  pcl::io::savePCDFile("./pointcloud_init.pcd", *cloud_msg);
-  cout<<"publish point_cloud height = "<<cloud_msg->height<<endl;
-  cout<<"publish point_cloud width = "<<cloud_msg->width<<endl;
-  
-  // Convert to PCL data type
+  pcl::PCLPointCloud2 cloud_filtered; 
+  // Convert ros type(*cloud_msg) to PCL data type
   pcl_conversions::toPCL(*cloud_msg, *cloud);
  
+  /*进行直通滤波*/ 
+
+
+  /*进行体素滤波*/ 
   // Perform the actual filtering
   pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-    // build the filter
-    sor.setInputCloud (cloudPtr);
-    sor.setLeafSize (0.005, 0.005, 0.005);
-    // apply filter
-    sor.filter (cloud_filtered);
- 
-  // Convert to ROS data type
+  // build the filter
+  sor.setInputCloud (cloudPtr);
+  sor.setLeafSize (0.005, 0.005, 0.005);
+  // apply filter
+  sor.filter (cloud_filtered);
+  // Convert pcl type to ROS data type
   sensor_msgs::PointCloud2 cloud_vog;
   pcl_conversions::moveFromPCL(cloud_filtered, cloud_vog);
  
- //滤波后的点云文件
-    pcl::io::savePCDFile("./pointcloud_filtered.pcd", cloud_vog);
-    cout<<"publish point_cloud height = "<<cloud_vog.height<<endl;
-    cout<<"publish point_cloud width = "<<cloud_vog.width<<endl;
-  
-  // Publish the data
-  pub.publish (cloud_vog);
+
+  //滤波后的点云文件
+  pcl::io::savePCDFile("./test_pointcloud_filtered.pcd", cloud_vog);
+  cout<<"pointcloud_filtered height = "<<cloud_vog.height<<endl;  /*若height为1则表示点云为无序点*/
+  cout<<"pointcloud_filtered width = "<<cloud_vog.width<<endl;
 }
  
 
@@ -57,11 +60,22 @@ int main (int argc, char** argv)
   ros::NodeHandle nh;
  
   // Create a ROS subscriber for the input point cloud
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> ("/camera/depth_registered/points", 1, cloud_cb);
+  //ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> ("/camera/depth_registered/points", 1, cloud_cb);
  
-  // Create a ROS publisher for the output point cloud
-  pub = nh.advertise<sensor_msgs::PointCloud2> ("/filtered_VoxelGrid", 1);
+  boost::shared_ptr<sensor_msgs::PointCloud2 const> pointCloud;
+  pointCloud = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth_registered/points", ros::Duration(10));
+  if (pointCloud!=NULL)
+  {
+    preprocess(pointCloud);
+  }
+  else
+  {
+    ROS_ERROR("Can't sub topic /camera/depth_registered/points!");
+  }
+  
+  ROS_INFO("successfully!");
+
  
   // Spin
-  ros::spin ();
+  //ros::spin ();
 }
