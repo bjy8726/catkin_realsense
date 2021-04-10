@@ -211,11 +211,11 @@ target_link_libraries(pre_processing
   ${catkin_LIBRARIES}
 )
 
-add_executable(disp_point_coordinate
-  src/disp_point_coordinate.cpp
+add_executable(disp_pcd_file
+  src/disp_pcd_file.cpp
 )
-add_dependencies(disp_point_coordinate ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(disp_point_coordinate
+add_dependencies(disp_pcd_file ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(disp_pcd_file
   ${catkin_LIBRARIES}
 )
 
