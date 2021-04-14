@@ -226,3 +226,11 @@ add_dependencies(pointcloud_topic_use_sample ${${PROJECT_NAME}_EXPORTED_TARGETS}
 target_link_libraries(pointcloud_topic_use_sample
   ${catkin_LIBRARIES}
 )
+
+add_executable(load_pcd_file_and_filter
+  src/load_pcd_file_and_filter.cpp
+)
+add_dependencies(load_pcd_file_and_filter ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(load_pcd_file_and_filter
+  ${catkin_LIBRARIES}
+)

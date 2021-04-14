@@ -66,14 +66,14 @@ int main (int argc, char** argv)
     /*加载pcd文件，赋值给pcl::PointCloud<pcl::PointXYZ>类型的 指针cloud*/
     if (pcl::io::loadPCDFile<pcl::PointXYZ>(filename, *cloud) == -1)
     {
-            PCL_ERROR("couldn't read file pointcloud.pcd");
+            ROS_INFO("couldn't read file pointcloud.pcd");
             return -1;
     }
 
     /*加载pcd文件，赋值给pcl::PointCloud<pcl::PointXYZRGB>类型的 指针cloud*/
     if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(filename, *cloudRGB) == -1)
     {
-            PCL_ERROR("couldn't read file pointcloud.pcd");
+            ROS_INFO("couldn't read file pointcloud.pcd");
             return -1;
     }
 

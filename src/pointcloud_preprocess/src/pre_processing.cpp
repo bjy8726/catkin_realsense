@@ -17,7 +17,7 @@ ros::Publisher pub;
 void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
 
-  //原始的点云文件
+  //保存原始点云为pcd文件
   pcl::io::savePCDFile("./test_pointcloud_init.pcd", *cloud_msg);
   cout<<"pointcloud_init height = "<<cloud_msg->height<<endl;
   cout<<"pointcloud_init width = "<<cloud_msg->width<<endl;
