@@ -38,7 +38,7 @@ Z轴偏移25.05-4.2 = 20.84mm
 `   sudo apt install pcl-tools   `
 `   pcl_viewer xxx.pcd    `
 
-### 录制数据
+## 录制数据
 `rosbag record -a `
 
 ## 播放录制的数据
