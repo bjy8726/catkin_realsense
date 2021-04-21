@@ -88,7 +88,7 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 int main (int argc, char** argv)
 {
   // Initialize ROS
-  ros::init (argc, argv, "VoxelGrid");
+  ros::init (argc, argv, "preprocess");
   ros::NodeHandle nh;
  
   // Create a ROS subscriber for the input point cloud
@@ -103,7 +103,6 @@ int main (int argc, char** argv)
   else
   {
     ROS_ERROR("Can't sub topic /camera/depth_registered/points!");
-  }
-  
+  } 
   ROS_INFO(" Filter Successfully!");
 }

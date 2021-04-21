@@ -113,6 +113,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr voxelGrid(pcl::PointCloud<pcl::PointXYZ>::Pt
     return voxelgrid_filtered;
 }
 
+/*对三维点云实现预处理*/
 void preprocess(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,string outputFile)
 {
 
@@ -144,7 +145,7 @@ void preprocess(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,string outputFile
 int main (int argc, char** argv)
 {
     // Initialize ROS
-    ros::init (argc, argv, "VoxelGrid");
+    ros::init (argc, argv, "filter");
     ros::NodeHandle nh;
     string inputFile = "test_pointcloud_init.pcd";
     string outputFile = "./888test_pointcloud_filtered.pcd";

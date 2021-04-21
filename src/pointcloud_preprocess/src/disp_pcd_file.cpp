@@ -57,7 +57,7 @@ string filename = "test_pointcloud_filtered.pcd";
 int main (int argc, char** argv)
 {
     // Initialize ROS
-    ros::init (argc, argv, "VoxelGrid");
+    ros::init (argc, argv, "disp_pcd_file");
     ros::NodeHandle nh;
  
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
