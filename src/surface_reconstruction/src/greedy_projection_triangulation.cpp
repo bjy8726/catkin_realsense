@@ -11,7 +11,16 @@
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
 
-int reconstruction(std::string inputFile,std::string outputFile)
+#include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
+#include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
+#include <pcl/surface/on_nurbs/triangulation.h>
+#include <pcl/console/parse.h>
+#include <pcl/io/vtk_lib_io.h>
+
+/*贪婪投影三角化实现曲面模型重建*/
+int greedy_projection_triangulation(std::string inputFile,std::string outputFile)
 {
   // Load input file into a PointCloud<T> with an appropriate type
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -64,8 +73,9 @@ int reconstruction(std::string inputFile,std::string outputFile)
   
   /*将结果存储成VTK文件，作为网格模型做后续处理*/
   //pcl::io::saveVTKFile(outputFile,triangles);
-  pcl::io::savePLYFile(outputFile,triangles);
-
+  //pcl::io::savePLYFile(outputFile,triangles);
+  /*该函数需要使用头文件#include <pcl/io/vtk_lib_io.h>*/
+  pcl::io::savePolygonFileSTL(outputFile,triangles,true);
 
   /*可视化重建的结果*/
   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
@@ -73,7 +83,7 @@ int reconstruction(std::string inputFile,std::string outputFile)
   viewer->addPolygonMesh(triangles,"my");
   //viewer->addCoordinateSystem (1.0);
   viewer->initCameraParameters ();
-   // ��ѭ��
+
   while (!viewer->wasStopped ())
   {
     viewer->spinOnce (100);
@@ -90,8 +100,9 @@ int main(int argc, char** argv)
     std::string inputFile = "888test_pointcloud_filtered.pcd";
     std::string outputFile_vtk = "./888mesh.vtk";
     std::string outputFile_ply = "./888mesh.ply";
+    std::string outputFile_stl = "./888mesh.stl";
     //修改输出文件的格式时，需要在reconstruction()函数中重新选择不同的保存函数
-    reconstruction(inputFile,outputFile_ply);
+    greedy_projection_triangulation(inputFile,outputFile_stl);
 
     return 0;
 }

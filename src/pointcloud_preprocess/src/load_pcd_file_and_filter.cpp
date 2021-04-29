@@ -66,6 +66,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr crophull(pcl::PointCloud<pcl::PointXYZ>::Ptr
     boundingbox_ptr->push_back(pcl::PointXYZ(0.1, 0.1, 0.1));
     boundingbox_ptr->push_back(pcl::PointXYZ(0.1, -0.1,0.1 ));
     boundingbox_ptr->push_back(pcl::PointXYZ(-0.1, 0.1,0.1 ));
+    boundingbox_ptr->push_back(pcl::PointXYZ(-0.1, -0.1,0.1 ));
 
     /*构造凸包*/
     pcl::ConvexHull<pcl::PointXYZ> hull;
