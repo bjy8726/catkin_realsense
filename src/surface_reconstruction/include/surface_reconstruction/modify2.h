@@ -87,7 +87,9 @@ namespace pcl
          *  \param[out] mesh The pcl::PolygonMesh
          *  \param[in] resolution mesh resolution (number of vertices along each of the two dimensions of the surface. */
         static void
-        convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+        convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,
+                                           pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+                                           pcl::PointCloud<pcl::Normal>::Ptr my_normals,
                                            unsigned resolution);
         static void
         convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,

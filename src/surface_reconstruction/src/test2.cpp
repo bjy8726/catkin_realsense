@@ -106,7 +106,7 @@ main (int argc, char *argv[])
     fit.solve ();
     pcl::on_nurbs::Triangulation::convertSurface2Vertices (fit.m_nurbs, mesh_cloud, mesh_vertices, mesh_resolution);
     viewer.updatePolygonMesh<pcl::PointXYZ> (mesh_cloud, mesh_vertices, mesh_id);
-    viewer.spinOnce (3000);
+    viewer.spinOnce (1000);
 	std::cout<<"refine: "<<i<<endl;
   }
 
@@ -117,7 +117,7 @@ main (int argc, char *argv[])
     fit.solve ();
     pcl::on_nurbs::Triangulation::convertSurface2Vertices (fit.m_nurbs, mesh_cloud, mesh_vertices, mesh_resolution);
     viewer.updatePolygonMesh<pcl::PointXYZ> (mesh_cloud, mesh_vertices, mesh_id);
-    viewer.spinOnce (3000);
+    viewer.spinOnce (1000);
 	std::cout<<"iterations: "<<i<<endl;
   }
 
@@ -157,15 +157,15 @@ main (int argc, char *argv[])
 
   printf ("  triangulate trimmed surface ...\n");
   viewer.removePolygonMesh (mesh_id);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr test_cloud (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs, curve_fit.m_nurbs, mesh,test_cloud,
+  //定义一个点云test_cloud2，用来存放裁剪之后曲面的 等参数化离散点
+  pcl::PointCloud<pcl::PointXYZ>::Ptr test_cloud2 (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::Normal>::Ptr my_normals (new pcl::PointCloud<pcl::Normal>);
+  pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs, curve_fit.m_nurbs, mesh,
+                                                                    test_cloud2, my_normals,
                                                                    mesh_resolution);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr test_cloud_rgb (new pcl::PointCloud<pcl::PointXYZRGB>);
   
   /*显示出拟合曲面（三角化之后的）上的点*/
-  pcl::PointCloud<pcl::PointXYZ>::Ptr test_cloud2 (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::fromPCLPointCloud2(mesh.cloud, *test_cloud2);
-  int point_count=0;
   for (int i = 0; i < test_cloud2->size(); i++)
   {
     pcl::PointXYZRGB p;
@@ -173,23 +173,36 @@ main (int argc, char *argv[])
     p.y = test_cloud2->at(i).y;
     p.z = test_cloud2->at(i).z;
 
-    p.r = 0;
-    p.g = 255;
+    p.r = 255;
+    p.g = 0;
     p.b = 0;
+    /*
     std::cout<<"x:"<<p.x<<endl;
     std::cout<<"y:"<<p.y<<endl;
     std::cout<<"z:"<<p.z<<endl;
     std::cout<<endl;
-    point_count++;
+    */
     test_cloud_rgb->push_back (p);
+    //viewer.removePointCloud ("test_cloud_rgb");
+    //viewer.addPointCloud (test_cloud_rgb, "test_cloud_rgb");
+    //viewer.spinOnce (50);
   }
-  std::cout<<point_count<<endl;
 
 
-  viewer.removePointCloud ("test_cloud_rgb");
-  viewer.addPointCloud (test_cloud_rgb, "test_cloud_rgb");
+  std::cout<<"cloud size:"<<test_cloud_rgb->size()<<endl;
+  std::cout<<"normals size:"<<my_normals->size()<<endl;
+
+
+  //viewer.removePointCloud ("test_cloud_rgb");
+  //viewer.addPointCloud (test_cloud_rgb, "test_cloud_rgb");
   
   //viewer.addPolygonMesh (mesh, mesh_id);
+
+  viewer.addPointCloud (test_cloud_rgb, "test_cloud_rgb");
+  //第三个参数控制法线的显示个数，第四个参数控制法线的长短
+  viewer.addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal> (test_cloud_rgb, my_normals, 10, 0.5, "normals");
+  viewer.addCoordinateSystem (1.0);
+  viewer.initCameraParameters ();
 
   /*将文件保存为stl格式或者ply格式*/
 /*pcl::io::savePLYFile("plyTest.ply",mesh);

@@ -26,7 +26,7 @@ main (int argc, char *argv[])
 {
   std::string pcd_file, file_3dm;
 
-  if (argc < 3)
+  if (argc < 2)
   {
     printf ("\nUsage: pcl_example_nurbs_fitting_surface pcd<PointXYZ>-in-file -o 3 -rn 4 -in 10 -mr 128 -td 1\n\n");
     exit (0);
@@ -59,10 +59,10 @@ main (int argc, char *argv[])
   // fit B-spline surface
 
   // parameters
-  unsigned order (3);
+  unsigned order (3); //B样条曲面模型参数的阶数，对应基函数的次数为order-1
   unsigned refinement (4);
   unsigned iterations (10);
-  unsigned mesh_resolution (128);
+  unsigned mesh_resolution (128); //在每个方向上的采样点个数
   bool two_dim=true;
   parse_argument (argc, argv, "-o", order);
   parse_argument (argc, argv, "-rn", refinement);
@@ -100,7 +100,7 @@ main (int argc, char *argv[])
     pcl::on_nurbs::Triangulation::convertSurface2Vertices (fit.m_nurbs, mesh_cloud, mesh_vertices, mesh_resolution);
     viewer.updatePolygonMesh<pcl::PointXYZ> (mesh_cloud, mesh_vertices, mesh_id);
     viewer.spinOnce (3000);
-	std::cout<<"refine: "<<i<<endl;
+	  std::cout<<"refine: "<<i<<endl;
   }
 
   // surface fitting with final refinement level
@@ -111,7 +111,7 @@ main (int argc, char *argv[])
     pcl::on_nurbs::Triangulation::convertSurface2Vertices (fit.m_nurbs, mesh_cloud, mesh_vertices, mesh_resolution);
     viewer.updatePolygonMesh<pcl::PointXYZ> (mesh_cloud, mesh_vertices, mesh_id);
     viewer.spinOnce (3000);
-	std::cout<<"iterations: "<<i<<endl;
+	  std::cout<<"iterations: "<<i<<endl;
   }
 
   // ############################################################################
@@ -147,7 +147,6 @@ main (int argc, char *argv[])
 
   // ############################################################################
   // triangulation of trimmed surface
-/*
   printf ("  triangulate trimmed surface ...\n");
   viewer.removePolygonMesh (mesh_id);
   pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs, curve_fit.m_nurbs, mesh,
@@ -157,7 +156,7 @@ main (int argc, char *argv[])
   /*将文件保存为stl格式或者ply格式*/
   /*pcl::io::savePLYFile("plyTest.ply",mesh);
   pcl::io::savePolygonFileSTL("stlTest2.stl",mesh,false); //最后一个参数决定是ASSIC文件
-*/
+  */
 
 
 
@@ -232,11 +231,11 @@ visualizeCurve (ON_NurbsCurve &curve, ON_NurbsSurface &surface, pcl::visualizati
     ON_3dPoint p1;
     //获取NURBS为有理时的欧式cv
     curve.GetCV (i, p1);
-
+    /*
     std::cout<<"x1:"<<p1.x<<endl;
     std::cout<<"y1:"<<p1.x<<endl;
     std::cout<<"z1:"<<p1.z<<endl;
-    std::cout<<endl;
+    std::cout<<endl;*/
     
     double pnt[3];
     //evaluate()函数应该是给出nurbs曲线的控制点，在曲面上对应的坐标
@@ -249,6 +248,7 @@ visualizeCurve (ON_NurbsCurve &curve, ON_NurbsSurface &surface, pcl::visualizati
     p2.r = 0;
     p2.g = 255;
     p2.b = 0;
+    
     std::cout<<"x:"<<p2.x<<endl;
     std::cout<<"y:"<<p2.y<<endl;
     std::cout<<"z:"<<p2.z<<endl;

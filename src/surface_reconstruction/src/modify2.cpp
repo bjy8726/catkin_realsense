@@ -204,7 +204,8 @@ Triangulation::convertSurface2PolygonMesh (const ON_NurbsSurface &nurbs, Polygon
 /*修改下面一个函数的接口*/
 void
 Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve,
-                                                  PolygonMesh &mesh, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,unsigned resolution)
+                                                  PolygonMesh &mesh, pcl::PointCloud<pcl::PointXYZ>::Ptr trimmedCloud, 
+                                                  pcl::PointCloud<pcl::Normal>::Ptr my_normals,unsigned resolution)
 {
   // copy knots
   if (nurbs.KnotCount (0) <= 1 || nurbs.KnotCount (1) <= 1 || curve.KnotCount () <= 1)
@@ -222,8 +223,8 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
   double y1 = nurbs.Knot (1, nurbs.KnotCount (1) - 1);
   double h = y1 - y0;
 
-/*去掉下面一行*/
-  //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
   
   
   std::vector<pcl::Vertices> polygons;
@@ -302,27 +303,53 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
     v.y = float (pc (1));
   }
 
+
+  pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
   for (auto &v : *cloud)
   {
-    Eigen::Vector3d tu, tv;
+    //增加一个方向量n, n = u x v.
+    Eigen::Vector3d tu, tv, n;
 
-    double point[3];
-    nurbs.Evaluate (v.x, v.y, 0, 3, point);
+    double point[9];
+    //参数1代表1阶导，具体说明可以查看Evaluate()函数中的ON_EvaluateNurbsSurfaceSpan()函数说明
+    //在头文件opennurbs_evaluate_nurbs.h中
+    nurbs.Evaluate (v.x, v.y, 1, 3, point);
 
     v.x = float (point[0]);
     v.y = float (point[1]);
     v.z = float (point[2]);
-    //    tu[0] = point[3];
-    //    tu[1] = point[4];
-    //    tu[2] = point[5];
-    //    tv[0] = point[6];
-    //    tv[1] = point[7];
-    //    tv[2] = point[8];
+    //下面几个量应该是点的u方向的切向量和v方向的切向量,但是打印出来都是0
+        
+    tu[0] = point[3];
+    tu[1] = point[4];
+    tu[2] = point[5];
+    tv[0] = point[6];
+    tv[1] = point[7];
+    tv[2] = point[8];
 
+    n = tv.cross(tu);
+    pcl::Normal ni;
+    ni.normal[0] = n[0];
+    ni.normal[1] = n[1];
+    ni.normal[2] = n[2];
+    normals->push_back(ni);
+
+    //printf("n:%lf %lf %lf\n",n[0],n[1],n[2]);
     // TODO: add normals to mesh
   }
 
   toPCLPointCloud2 (*cloud, mesh.cloud);
+
+  //根据数组pt_is_in[i]的值，在最初nurbs曲面的点云中找出裁剪曲线之内的点
+  for (std::size_t i = 0; i < cloud->size (); i++)
+  {
+    if(pt_is_in[i])
+    {
+      trimmedCloud->push_back(cloud->at(i));
+      my_normals->push_back(normals->at(i));
+    }
+  }
+  
 }
 
 void
