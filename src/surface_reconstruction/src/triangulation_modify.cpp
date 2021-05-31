@@ -44,7 +44,7 @@
 #include <Eigen/Geometry> // for cross
 
 
-#include "surface_reconstruction/modify2.h"
+#include "surface_reconstruction/triangulation_modify.h"
 
 using namespace pcl;
 using namespace on_nurbs;
@@ -311,7 +311,7 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
     Eigen::Vector3d tu, tv, n;
 
     double point[9];
-    //参数1代表1阶导，具体说明可以查看Evaluate()函数中的ON_EvaluateNurbsSurfaceSpan()函数说明
+    //参数1代表求1阶导DS/DT，具体说明可以查看Evaluate()函数中的ON_EvaluateNurbsSurfaceSpan()函数说明
     //在头文件opennurbs_evaluate_nurbs.h中
     nurbs.Evaluate (v.x, v.y, 1, 3, point);
 
@@ -323,10 +323,12 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
     tu[0] = point[3];
     tu[1] = point[4];
     tu[2] = point[5];
+    
     tv[0] = point[6];
     tv[1] = point[7];
     tv[2] = point[8];
 
+    //通过叉乘计算法向量
     n = tv.cross(tu);
     pcl::Normal ni;
     ni.normal[0] = n[0];

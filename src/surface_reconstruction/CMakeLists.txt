@@ -51,10 +51,12 @@ target_link_libraries(bspline_fitting ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
 
-add_executable(test2
-  src/modify2.cpp
-  include/surface_reconstruction/modify2.h
-  src/test2.cpp
+add_executable(bspline_fitting_and_dispersion
+  include/surface_reconstruction/visualization.h
+  src/visualizition.cpp
+  src/triangulation_modify.cpp
+  include/surface_reconstruction/triangulation_modify.h
+  src/bspline_fitting_and_dispersion.cpp
 )
-add_dependencies(test2 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(test2 ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(bspline_fitting_and_dispersion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(bspline_fitting_and_dispersion ${catkin_LIBRARIES} ${PCL_LIBRARIES})

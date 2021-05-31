@@ -147,7 +147,7 @@ main (int argc, char *argv[])
 
   // ############################################################################
   // triangulation of trimmed surface
-  printf ("  triangulate trimmed surface ...\n");
+  printf ("triangulate trimmed surface ...\n\n");
   viewer.removePolygonMesh (mesh_id);
   pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs, curve_fit.m_nurbs, mesh,
                                                                    mesh_resolution);
@@ -182,7 +182,7 @@ main (int argc, char *argv[])
     printf("  model saved: %s\n", file_3dm.c_str());
   }*/
 
-  printf ("  ... done.\n");
+  printf ("... done.\n");
 
   viewer.spin ();
   return 0;

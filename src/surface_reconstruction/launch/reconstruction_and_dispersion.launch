@@ -1,0 +1,6 @@
+<launch>
+
+    <rosparam command="load" file="$(find surface_reconstruction)/cfg/surface.yaml"/>
+    <node name="bspline_fitting_and_dispersion" pkg="surface_reconstruction" type="bspline_fitting_and_dispersion" output="screen" required="true"/>
+
+</launch>
