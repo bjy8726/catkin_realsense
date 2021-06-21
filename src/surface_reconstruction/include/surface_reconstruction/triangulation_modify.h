@@ -86,11 +86,12 @@ namespace pcl
          *  \param[in] curve The nurbs curve for trimming (direction of curve decides if inside or outside is trimmed)
          *  \param[out] mesh The pcl::PolygonMesh
          *  \param[in] resolution mesh resolution (number of vertices along each of the two dimensions of the surface. */
+        //修改
         static void
         convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,
                                            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
                                            pcl::PointCloud<pcl::Normal>::Ptr my_normals,
-                                           unsigned resolution);
+                                           unsigned resolution,double point[]);
         static void
         convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,
                                            unsigned resolution, vector_vec3d &start, vector_vec3d &end);

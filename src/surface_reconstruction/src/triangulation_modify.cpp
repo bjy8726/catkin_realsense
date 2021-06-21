@@ -205,7 +205,8 @@ Triangulation::convertSurface2PolygonMesh (const ON_NurbsSurface &nurbs, Polygon
 void
 Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve,
                                                   PolygonMesh &mesh, pcl::PointCloud<pcl::PointXYZ>::Ptr trimmedCloud, 
-                                                  pcl::PointCloud<pcl::Normal>::Ptr my_normals,unsigned resolution)
+                                                  pcl::PointCloud<pcl::Normal>::Ptr my_normals,unsigned resolution,
+                                                  double point[])
 {
   // copy knots
   if (nurbs.KnotCount (0) <= 1 || nurbs.KnotCount (1) <= 1 || curve.KnotCount () <= 1)
@@ -310,7 +311,6 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
     //增加一个方向量n, n = u x v.
     Eigen::Vector3d tu, tv, n;
 
-    double point[9];
     //参数1代表求1阶导DS/DT，具体说明可以查看Evaluate()函数中的ON_EvaluateNurbsSurfaceSpan()函数说明
     //在头文件opennurbs_evaluate_nurbs.h中
     nurbs.Evaluate (v.x, v.y, 1, 3, point);
@@ -328,8 +328,8 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
     tv[1] = point[7];
     tv[2] = point[8];
 
-    //通过叉乘计算法向量
-    n = tv.cross(tu);
+    //通过叉乘计算法向量v叉乘u
+    n = tu.cross(tv);
     pcl::Normal ni;
     ni.normal[0] = n[0];
     ni.normal[1] = n[1];

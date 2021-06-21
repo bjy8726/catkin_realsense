@@ -1,8 +1,11 @@
 #重建接口参数
 cloud_file_cfg:
-  pcd_file: /home/bianjingyang/catkin_realsense/888test_pointcloud_filtered.pcd
+  pcd_file: /home/bianjingyang/catkin_realsense/src/io_files/test_filtered.pcd
 
 reconstruction:
   mesh_resolution: 128  #用去曲面重建
-  mesh_resolution_trajectory: 50 #用于重建之后的曲面进行等参数离散化
-
+  mesh_resolution_trajectory: 30 #用于重建之后的曲面进行等参数离散化
+  
+trajectory_planning_files:
+   #相对相机坐标系的轨迹点文件
+   text_cam: /home/bianjingyang/catkin_realsense/src/io_files/pose_points_file.txt 

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=到  的链接
+Type=Link
+URL=file:///home/bianjingyang/catkin_realsense/src/surface_reconstruction/src/bspline_fitting_and_dispersion.cpp
+Icon=text-x-c++src

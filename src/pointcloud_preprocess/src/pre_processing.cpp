@@ -18,7 +18,7 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
 
   //保存原始点云为pcd文件
-  pcl::io::savePCDFile("./test_pointcloud_init.pcd", *cloud_msg);
+  pcl::io::savePCDFile("/home/bianjingyang/catkin_realsense/src/io_files/test_init.pcd", *cloud_msg);
   cout<<"pointcloud_init height = "<<cloud_msg->height<<endl;
   cout<<"pointcloud_init width = "<<cloud_msg->width<<endl;
 
@@ -52,13 +52,14 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   //pass.setFilterLimitsNegative (true);
   pass.filter (passthrough_filtered_y);
 
+
   /*进行Z方向直通滤波*/
   pcl::PCLPointCloud2* cloud_z = new pcl::PCLPointCloud2;
   *cloud_z = passthrough_filtered_y;
   pcl::PCLPointCloud2ConstPtr cloudPtr_z(cloud_z);
   pass.setInputCloud (cloudPtr_z);
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits (0.1, 0.3);
+  pass.setFilterLimits (0.2, 0.4);
   //pass.setFilterLimitsNegative (true);
   pass.filter (passthrough_filtered_z);
  
@@ -79,7 +80,7 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // Convert pcl type to pcd data type
   sensor_msgs::PointCloud2 cloud_vog;
   pcl_conversions::moveFromPCL(voxelgrid_filtered, cloud_vog);
-  pcl::io::savePCDFile("./test_pointcloud_filtered.pcd", cloud_vog);
+  pcl::io::savePCDFile("/home/bianjingyang/catkin_realsense/src/io_files/test_filtered.pcd", cloud_vog);
   cout<<"pointcloud_filtered height = "<<cloud_vog.height<<endl;  /*若height为1则表示点云为无序点*/
   cout<<"pointcloud_filtered width = "<<cloud_vog.width<<endl;
 }
@@ -105,4 +106,5 @@ int main (int argc, char** argv)
     ROS_ERROR("Can't sub topic /camera/depth_registered/points!");
   } 
   ROS_INFO(" Filter Successfully!");
+  return 0;
 }
