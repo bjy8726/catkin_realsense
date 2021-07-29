@@ -30,18 +30,19 @@ int main (int argc, char *argv[])
   int mesh_resolution_trajectory;
 
   // parameters
-  n.param<std::string>("/cloud_file_cfg/pcd_file",pcd_file,"/home/bianjingyang/catkin_realsense/test_pointcloud_filtered.pcd");
+  n.param<std::string>("/cloud_file_cfg/pcd_file_filtered",pcd_file,"/home/bianjingyang/catkin_realsense/test_filtered.pcd");
   n.param("/reconstruction/mesh_resolution",mesh_resolution,128);
   n.param("/reconstruction/mesh_resolution_trajectory",mesh_resolution_trajectory,50);
   n.param<std::string>("/trajectory_planning_files/text_cam",pose_points_file,"/home/bianjingyang/catkin_realsense/src/io_files/pose_points_file");
 
-  unsigned order (3);
+  unsigned order_curve (3);
+  unsigned order_surface (4); //曲面的基函数为4阶， 次数为3, 即3次B样条曲面
   unsigned refinement (4);
   unsigned iterations (10);
 
   bool two_dim=true;
   
-  parse_argument (argc, argv, "-o", order);
+  parse_argument (argc, argv, "-o", order_surface);
   parse_argument (argc, argv, "-rn", refinement);
   parse_argument (argc, argv, "-in", iterations);
   parse_argument (argc, argv, "-td", two_dim);
@@ -83,7 +84,7 @@ int main (int argc, char *argv[])
 
   // initialize
   printf ("Surface fitting ...\n\n");
-  ON_NurbsSurface nurbs = pcl::on_nurbs::FittingSurface::initNurbsPCABoundingBox (order, &data);
+  ON_NurbsSurface nurbs = pcl::on_nurbs::FittingSurface::initNurbsPCABoundingBox (order_surface, &data);
   pcl::on_nurbs::FittingSurface fit (&data, nurbs);
   //  fit.setQuiet (false); // enable/disable debug output
 
@@ -105,7 +106,7 @@ int main (int argc, char *argv[])
     fit.solve ();
     pcl::on_nurbs::Triangulation::convertSurface2Vertices (fit.m_nurbs, mesh_cloud, mesh_vertices, mesh_resolution);
     viewer.updatePolygonMesh<pcl::PointXYZ> (mesh_cloud, mesh_vertices, mesh_id);
-    viewer.spinOnce (500);
+    viewer.spinOnce (200);
 	  std::cout<<"refine: "<<i<<endl;
   }
 
@@ -116,7 +117,7 @@ int main (int argc, char *argv[])
     fit.solve ();
     pcl::on_nurbs::Triangulation::convertSurface2Vertices (fit.m_nurbs, mesh_cloud, mesh_vertices, mesh_resolution);
     viewer.updatePolygonMesh<pcl::PointXYZ> (mesh_cloud, mesh_vertices, mesh_id);
-    viewer.spinOnce (500);
+    viewer.spinOnce (200);
 	  std::cout<<"iterations: "<<i<<endl;
   }
 
@@ -143,7 +144,7 @@ int main (int argc, char *argv[])
   pcl::on_nurbs::NurbsDataCurve2d curve_data;
   curve_data.interior = data.interior_param;
   curve_data.interior_weight_function.push_back (true);
-  ON_NurbsCurve curve_nurbs = pcl::on_nurbs::FittingCurve2dAPDM::initNurbsCurve2D (order, curve_data.interior);
+  ON_NurbsCurve curve_nurbs = pcl::on_nurbs::FittingCurve2dAPDM::initNurbsCurve2D (order_curve, curve_data.interior);
   // curve fitting
   pcl::on_nurbs::FittingCurve2dASDM curve_fit (&curve_data, curve_nurbs);
   // curve_fit.setQuiet (false); // enable/disable debug output
@@ -157,12 +158,14 @@ int main (int argc, char *argv[])
   printf ("triangulate trimmed surface ...\n\n");
   //定义一个点云my_cloud，用来存放裁剪之后曲面的 等参数化离散点
   pcl::PointCloud<pcl::PointXYZ>::Ptr my_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::Normal>::Ptr my_tu (new pcl::PointCloud<pcl::Normal>);
+  pcl::PointCloud<pcl::Normal>::Ptr my_tv (new pcl::PointCloud<pcl::Normal>);
   pcl::PointCloud<pcl::Normal>::Ptr my_normals (new pcl::PointCloud<pcl::Normal>);
   double point[9];//分别存放x y z tu[0] tu[1] tu[2] tv[0] tv[1] tv[2]
   //mesh_resolution_trajectory将u/v向分别分成这些份。
   pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs, curve_fit.m_nurbs, mesh,
-                                                                    my_cloud, my_normals,
-                                                                   mesh_resolution_trajectory,point);
+                                                                    my_cloud,my_tu,my_tv,my_normals,
+                                                                   mesh_resolution_trajectory);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr disp_cloud_rgb (new pcl::PointCloud<pcl::PointXYZRGB>);
   
   //显示出拟合的曲面
@@ -204,20 +207,20 @@ int main (int argc, char *argv[])
     p.g = 0;
     p.b = 0;
     disp_cloud_rgb->push_back (p);
+    
     if(i>=1)
     {
       double dx2 = pow((my_cloud->at(i).x - my_cloud->at(i-1).x),2);
       double dy2 = pow((my_cloud->at(i).y - my_cloud->at(i-1).y),2);
       double dz2 = pow((my_cloud->at(i).z - my_cloud->at(i-1).z),2);
       double deltad = sqrt(dx2+dy2+dz2);
-
       if(deltad>0.05)
-      {//如果两点的距离 大于一定值，说明是下一行路径点
+      {//如果两点的距离 大于一定值，说明是下一行路径点，将缓存的奇数行路径点输到文件，并输出一个NEXT
         if(next_counts%2 == 1)
-        {//当遇到奇数个NEXT时，将之前保存的一行vector逆过来输入到文件
+        {//当遇到奇数个NEXT时，将之前保存的一行vector（next_points）逆过来输入到文件
           for(int i=next_points.size()-1;i>=0;i--)
           {
-                            //x y z
+            //x y z
             outfile<<next_points[i][0]<<"    ";
             outfile<<next_points[i][1]<<"    ";
             outfile<<next_points[i][2]<<"    ";
@@ -233,17 +236,16 @@ int main (int argc, char *argv[])
         
         outfile<<"NEXT"<<endl;
         next_counts++;
-        
       }
     }
     
     //旋转矩阵
     Eigen::Matrix3d T;
-    //tu[0] tu[1] tu[2]
+    //获取单位向量tu
     Eigen::Vector3d tmp;
-    tmp[0] = point[3];
-    tmp[1] = point[4];
-    tmp[2] = point[5];
+    tmp[0] = my_tu->at(i).normal[0];
+    tmp[1] = my_tu->at(i).normal[1];
+    tmp[2] = my_tu->at(i).normal[2];
     double length = tmp.norm();
     tmp[0] = tmp[0]/length;
     tmp[1] = tmp[1]/length;
@@ -252,10 +254,10 @@ int main (int argc, char *argv[])
     T(1,0) = tmp[1];
     T(2,0) = tmp[2];
     
-    //tv[0] tv[1] tv[2]
-    tmp[0] = point[6];
-    tmp[1] = point[7];
-    tmp[2] = point[8];
+    //获取单位向量tv
+    tmp[0] = my_tv->at(i).normal[0];
+    tmp[1] = my_tv->at(i).normal[1];
+    tmp[2] = my_tv->at(i).normal[2];
     length = tmp.norm();
     tmp[0] = tmp[0]/length;
     tmp[1] = tmp[1]/length;
@@ -264,10 +266,11 @@ int main (int argc, char *argv[])
     T(1,1) = tmp[1];
     T(2,1) = tmp[2];
 
-    //u叉乘v
+    //获取法向量的单位向量
     tmp[0] = my_normals->at(i).normal[0];
     tmp[1] = my_normals->at(i).normal[1];
     tmp[2] = my_normals->at(i).normal[2];
+
     length = tmp.norm();
     tmp[0] = tmp[0]/length;
     tmp[1] = tmp[1]/length;
@@ -281,19 +284,18 @@ int main (int argc, char *argv[])
     Q = T;
 
     if(next_counts%2 == 0)
-    {
-          //x y z
+    {//遇到第0 2 4 等偶数行直接输出到文件即可
+      //x y z
       outfile<<my_cloud->at(i).x<<"    ";
       outfile<<my_cloud->at(i).y<<"    ";
       outfile<<my_cloud->at(i).z<<"    ";
-
 
       outfile<<Q.x()<<"    ";
       outfile<<Q.y()<<"    ";
       outfile<<Q.z()<<"    ";
       outfile<<Q.w()<<endl;
     }
-    else{
+    else{//遇到第1 3 5奇数行先缓存起来，然后倒序写入文件
       vector<double> pose;
       pose.push_back(my_cloud->at(i).x);
       pose.push_back(my_cloud->at(i).y);
@@ -304,16 +306,11 @@ int main (int argc, char *argv[])
       pose.push_back(Q.w());
       next_points.push_back(pose);
       //vector<double>().swap(pose);
-      std::cout<<pose[0]<<endl;
     }
-
-
-
-    
-    //viewer.removePointCloud ("test_cloud_rgb");
-    //viewer.addPointCloud (test_cloud_rgb, "test_cloud_rgb");
-    //viewer.spinOnce (50);
   }
+
+
+  //最后一行需要单独处理
   if(!next_points.empty())
   {
     for(int i=next_points.size()-1;i>=0;i--)
@@ -342,7 +339,7 @@ int main (int argc, char *argv[])
   viewer_points.removePointCloud ("disp_cloud_rgb");
   viewer_points.addPointCloud (disp_cloud_rgb, "disp_cloud_rgb");
   //第三个参数控制法线的显示个数，第四个参数控制法线的长短
-  viewer_points.addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal> (disp_cloud_rgb, my_normals, 10, 0.5, "normals");
+  viewer_points.addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal> (disp_cloud_rgb, my_normals, 2, 1, "normals");
   viewer_points.addCoordinateSystem (1.0);
   viewer_points.initCameraParameters ();
 

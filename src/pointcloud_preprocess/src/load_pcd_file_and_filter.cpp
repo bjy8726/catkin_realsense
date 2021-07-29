@@ -63,10 +63,10 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr crophull(pcl::PointCloud<pcl::PointXYZ>::Ptr
 {
     /*设置封闭范围顶点*/
     pcl::PointCloud<pcl::PointXYZ>::Ptr boundingbox_ptr (new pcl::PointCloud<pcl::PointXYZ>);
-    boundingbox_ptr->push_back(pcl::PointXYZ(0.1, 0.1, 0.1));
-    boundingbox_ptr->push_back(pcl::PointXYZ(0.1, -0.1,0.1 ));
-    boundingbox_ptr->push_back(pcl::PointXYZ(-0.1, 0.1,0.1 ));
-    boundingbox_ptr->push_back(pcl::PointXYZ(-0.1, -0.1,0.1 ));
+    boundingbox_ptr->push_back(pcl::PointXYZ(-0.02, 0.2, 0.1));
+    boundingbox_ptr->push_back(pcl::PointXYZ(-0.02, -0.2,0.1 ));
+    boundingbox_ptr->push_back(pcl::PointXYZ(0.2,   0.2,0.1 ));
+    boundingbox_ptr->push_back(pcl::PointXYZ(0.2,  -0.2,0.1 ));
 
     /*构造凸包*/
     pcl::ConvexHull<pcl::PointXYZ> hull;
@@ -134,11 +134,13 @@ void preprocess(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,string outputFile
     //statistical_output = statisticalRemoval(crophull_output);
     
     /*体素滤波*/
+    /*
     pcl::PointCloud<pcl::PointXYZ>::Ptr voxelgrid_output(new pcl::PointCloud<pcl::PointXYZ>);
     voxelgrid_output = voxelGrid(crophull_output); 
+    */
     
     /*保存滤波后的点云文件*/
-    pcl::PointCloud<pcl::PointXYZ>::Ptr &output = voxelgrid_output;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &output = crophull_output;
     pcl::io::savePCDFileASCII(outputFile, *output);
     cout<<"pointcloud_filtered size = "<<output->points.size()<<endl;
 } 
@@ -148,8 +150,8 @@ int main (int argc, char** argv)
     // Initialize ROS
     ros::init (argc, argv, "filter");
     ros::NodeHandle nh;
-    string inputFile = "test_pointcloud_init.pcd";
-    string outputFile = "./888test_pointcloud_filtered.pcd";
+    string inputFile = "/home/bianjingyang/catkin_realsense/src/io_files/pcd_filtered_surface.pcd";
+    string outputFile = "/home/bianjingyang/catkin_realsense/src/io_files/pcd_filtered_surface_filtered.pcd";
     /*加载pcd文件并保存为inputCloud*/
     pcl::PointCloud<pcl::PointXYZ> inputCloud;
     if (pcl::io::loadPCDFile(inputFile, inputCloud) == -1)

@@ -90,8 +90,10 @@ namespace pcl
         static void
         convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,
                                            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+                                           pcl::PointCloud<pcl::Normal>::Ptr my_tu,
+                                           pcl::PointCloud<pcl::Normal>::Ptr my_tv,
                                            pcl::PointCloud<pcl::Normal>::Ptr my_normals,
-                                           unsigned resolution,double point[]);
+                                           unsigned resolution);
         static void
         convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve, PolygonMesh &mesh,
                                            unsigned resolution, vector_vec3d &start, vector_vec3d &end);

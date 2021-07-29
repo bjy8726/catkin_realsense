@@ -205,8 +205,10 @@ Triangulation::convertSurface2PolygonMesh (const ON_NurbsSurface &nurbs, Polygon
 void
 Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, const ON_NurbsCurve &curve,
                                                   PolygonMesh &mesh, pcl::PointCloud<pcl::PointXYZ>::Ptr trimmedCloud, 
-                                                  pcl::PointCloud<pcl::Normal>::Ptr my_normals,unsigned resolution,
-                                                  double point[])
+                                                  pcl::PointCloud<pcl::Normal>::Ptr my_tu,
+                                                  pcl::PointCloud<pcl::Normal>::Ptr my_tv,
+                                                  pcl::PointCloud<pcl::Normal>::Ptr my_normals,
+                                                  unsigned resolution)
 {
   // copy knots
   if (nurbs.KnotCount (0) <= 1 || nurbs.KnotCount (1) <= 1 || curve.KnotCount () <= 1)
@@ -223,12 +225,18 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
   double y0 = nurbs.Knot (1, 0);
   double y1 = nurbs.Knot (1, nurbs.KnotCount (1) - 1);
   double h = y1 - y0;
-
+  
+  std::cout<<"节点向量始末值(uv参数值)："<<std::endl;
+  std::cout<<x0<<std::endl;
+  std::cout<<y0<<std::endl;
+  std::cout<<w<<std::endl;
+  std::cout<<h<<std::endl;
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
   
   
   std::vector<pcl::Vertices> polygons;
+  //创建uv参数方向上的离散节点，用于后面计算xyz坐标系下的点
   createVertices (cloud, float (x0), float (y0), 0.0f, float (w), float (h), resolution, resolution);
   createIndices (polygons, 0, resolution, resolution);
 
@@ -306,12 +314,16 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
 
 
   pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
+  pcl::PointCloud<pcl::Normal>::Ptr tu_normals (new pcl::PointCloud<pcl::Normal>);
+  pcl::PointCloud<pcl::Normal>::Ptr tv_normals (new pcl::PointCloud<pcl::Normal>);
   for (auto &v : *cloud)
   {
     //增加一个方向量n, n = u x v.
     Eigen::Vector3d tu, tv, n;
+    double point[9];
 
     //参数1代表求1阶导DS/DT，具体说明可以查看Evaluate()函数中的ON_EvaluateNurbsSurfaceSpan()函数说明
+    //参数3:点的维数
     //在头文件opennurbs_evaluate_nurbs.h中
     nurbs.Evaluate (v.x, v.y, 1, 3, point);
 
@@ -330,12 +342,25 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
 
     //通过叉乘计算法向量v叉乘u
     n = tu.cross(tv);
-    pcl::Normal ni;
+    pcl::Normal tui,tvi,ni;
+
+    tui.normal[0] = tu[0];
+    tui.normal[1] = tu[1];
+    tui.normal[2] = tu[2];
+
+    tvi.normal[0] = tv[0];
+    tvi.normal[1] = tv[1];
+    tvi.normal[2] = tv[2];
+
     ni.normal[0] = n[0];
     ni.normal[1] = n[1];
     ni.normal[2] = n[2];
-    normals->push_back(ni);
 
+    tu_normals->push_back(tui);
+    tv_normals->push_back(tvi);
+    normals->push_back(ni);
+    
+    
     //printf("n:%lf %lf %lf\n",n[0],n[1],n[2]);
     // TODO: add normals to mesh
   }
@@ -348,6 +373,8 @@ Triangulation::convertTrimmedSurface2PolygonMesh (const ON_NurbsSurface &nurbs, 
     if(pt_is_in[i])
     {
       trimmedCloud->push_back(cloud->at(i));
+      my_tu->push_back(tu_normals->at(i));
+      my_tv->push_back(tv_normals->at(i));
       my_normals->push_back(normals->at(i));
     }
   }
