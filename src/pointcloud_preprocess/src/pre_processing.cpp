@@ -49,7 +49,7 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PCLPointCloud2ConstPtr cloudPtr_x(cloud);
   pass.setInputCloud (cloudPtr_x);
   pass.setFilterFieldName ("x");
-  pass.setFilterLimits (-0.2, 0.2);
+  pass.setFilterLimits (-0.1, 0.1);
   //pass.setFilterLimitsNegative (true);
   pass.filter (passthrough_filtered_x);
   
@@ -59,12 +59,13 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PCLPointCloud2ConstPtr cloudPtr_y(cloud_y);
   pass.setInputCloud (cloudPtr_y);
   pass.setFilterFieldName ("y");
-  pass.setFilterLimits (-0.2, 0.2);
+  pass.setFilterLimits (-0.1, 0.1);
   //pass.setFilterLimitsNegative (true);
   pass.filter (passthrough_filtered_y);
 
 
   /*进行Z方向直通滤波*/
+  /*
   pcl::PCLPointCloud2* cloud_z = new pcl::PCLPointCloud2;
   *cloud_z = passthrough_filtered_y;
   pcl::PCLPointCloud2ConstPtr cloudPtr_z(cloud_z);
@@ -73,11 +74,12 @@ void preprocess(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pass.setFilterLimits (0.2, 0.4);
   //pass.setFilterLimitsNegative (true);
   pass.filter (passthrough_filtered_z);
+  */
 
 
   /*统计学滤波:移除离群点*/
   pcl::PCLPointCloud2* cloud_statistiacal = new pcl::PCLPointCloud2;
-  *cloud_statistiacal = passthrough_filtered_z;
+  *cloud_statistiacal = passthrough_filtered_y;
   pcl::PCLPointCloud2ConstPtr cloudStatistiacalPtr(cloud_statistiacal);
 
   pcl::StatisticalOutlierRemoval<pcl::PCLPointCloud2> statisticalRemoval;
@@ -125,7 +127,7 @@ int main (int argc, char** argv)
   //ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> ("/camera/depth_registered/points", 1, cloud_cb);
  
   boost::shared_ptr<sensor_msgs::PointCloud2 const> pointCloud;
-  pointCloud = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth_registered/points", ros::Duration(10));
+  pointCloud = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth/color/points", ros::Duration(10));
   if (pointCloud!=NULL)
   {
     preprocess(pointCloud);

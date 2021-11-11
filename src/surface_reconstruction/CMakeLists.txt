@@ -49,8 +49,6 @@ target_link_libraries(bspline_fitting ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
 
-
-
 add_executable(bspline_fitting_and_dispersion
   include/surface_reconstruction/visualization.h
   src/visualizition.cpp

@@ -1,0 +1,8 @@
+<launch>
+
+    <!--rosparam command="load" file="$(find surface_reconstruction)/cfg/surface.yaml"/-->
+    <!--include file="$(find realsense2_camera)/launch/rs_rgbd.launch"/--> 
+
+    <node name="load_pcd_file_and_filter" pkg="pointcloud_preprocess" type="load_pcd_file_and_filter" output="screen" required="true"/>
+
+</launch>
